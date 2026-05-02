@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import UnicornScene from 'unicornstudio-react';
+import React, { useEffect, useState, useRef } from 'react';
+
+// Carrega UnicornScene apenas após o primeiro frame renderizado
+// para não bloquear o LCP (Largest Contentful Paint)
+let UnicornScene = null;
 
 export default function App() {
   const [formData, setFormData] = useState({
@@ -9,6 +12,27 @@ export default function App() {
     goal: '',
     details: ''
   });
+  const [formStatus, setFormStatus] = useState('idle'); // idle | sending | success | error
+  const [unicornReady, setUnicornReady] = useState(false);
+
+  // Carrega o UnicornScene em segundo plano após mount
+  // sem bloquear a renderização inicial
+  useEffect(() => {
+    let raf;
+    const load = () => {
+      import('unicornstudio-react').then((mod) => {
+        UnicornScene = mod.default;
+        setUnicornReady(true);
+      });
+    };
+    // requestIdleCallback para carregar só quando o browser estiver ocioso
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(load, { timeout: 2000 });
+    } else {
+      raf = requestAnimationFrame(() => setTimeout(load, 300));
+    }
+    return () => { if (raf) cancelAnimationFrame(raf); };
+  }, []);
 
   useEffect(() => {
     const observerOptions = {
@@ -37,10 +61,24 @@ export default function App() {
     alert('Menu móvel clicado');
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    alert('Solicitação enviada! Entraremos em contato em breve.');
-    setFormData({ name: '', email: '', budget: '', goal: '', details: '' });
+    setFormStatus('sending');
+    try {
+      const res = await fetch('https://formspree.io/f/mzdodpjw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (res.ok) {
+        setFormStatus('success');
+        setFormData({ name: '', email: '', budget: '', goal: '', details: '' });
+      } else {
+        setFormStatus('error');
+      }
+    } catch {
+      setFormStatus('error');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -55,10 +93,10 @@ export default function App() {
         fontFamily: "'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif"
       }}
     >
-      {/* Background */}
+      {/* Background — carrega em segundo plano sem bloquear a página */}
       <div className="aura-background-component -z-10 w-full h-[1040px] absolute top-0">
         <div className="absolute w-full h-full left-0 top-0 -z-10" style={{ filter: 'hue-rotate(90deg)' }}>
-          <UnicornScene projectId="vTTCp5g4cVl9nwjlT56Z" />
+          {unicornReady && UnicornScene && <UnicornScene projectId="vTTCp5g4cVl9nwjlT56Z" />}
         </div>
       </div>
 
@@ -98,10 +136,10 @@ export default function App() {
             {/* Hero */}
             <section className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
               <h1 style={{animation:'fadeSlideIn 1s ease-out 0.2s forwards', opacity:0}} className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
-                Dois Donos de Negócio.<br />O Mesmo Ponto de Partida.<br />Resultados Completamente Diferentes.
+                Dois Negócios. O Mesmo Mercado.<br />Um Cresce. O Outro Luta para Sobreviver.
               </h1>
               <p className="sm:text-lg [animation:fadeSlideIn_1s_ease-out_0.3s_both] text-base font-normal text-white/70 font-geist max-w-2xl mt-6 mr-auto ml-auto">
-                Um tem fila de clientes. O outro espera o telefone tocar. A diferença não é o produto — é quem aparece no Google quando o cliente está procurando. A Five Agency coloca você no lugar certo, na hora certa.
+                Um tem fila de clientes. O outro espera o telefone tocar. A diferença não é o produto, não é o preço. É quem aparece no Google quando o cliente está procurando. A Five Agency coloca o seu negócio no lugar certo, na hora certa.
               </p>
               <div className="flex flex-col sm:flex-row [animation:fadeSlideIn_1s_ease-out_0.4s_both] mt-8 gap-x-3 gap-y-3 items-center justify-center">
                 <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20Five%20Agency%20e%20quero%20um%20or%C3%A7amento!" target="_blank" rel="noopener noreferrer" className="group relative inline-flex min-w-[140px] cursor-pointer transition-all duration-[1000ms] ease-[cubic-bezier(0.15,0.83,0.66,1)] hover:-translate-y-[3px] hover:text-white shadow-[0_2.8px_2.2px_rgba(0,0,0,0.3),_0_6.7px_5.3px_rgba(0,0,0,0.35),_0_12.5px_10px_rgba(0,0,0,0.4)] overflow-hidden font-semibold text-neutral-400 tracking-tight bg-neutral-800 border-neutral-600 border rounded-full pt-[12px] pr-[20px] pb-[12px] pl-[20px] items-center justify-center">
@@ -141,11 +179,11 @@ export default function App() {
             <div className="mt-10 relative bg-neutral-900/50 border border-white/10 rounded-2xl p-8 sm:p-12 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.3s_both]">
                <iconify-icon icon="solar:quote-left-bold" width="32" height="32" class="absolute top-6 left-6 text-white/20 transform -translate-x-2 -translate-y-2"></iconify-icon>
                <p className="relative text-lg sm:text-xl text-white/80 font-geist leading-relaxed">
-                 Dois donos de negócio abriram empresa no mesmo ano. Mesmos produtos. Mesmo bairro. Cinco anos depois, um fatura três vezes mais que o outro. A diferença? Um investiu num site que vende enquanto dorme. O outro ainda depende de indicação. Seu cliente está no Google agora — a pergunta é: ele está te encontrando ou encontrando o concorrente?
+                 Dois donos de negócio abriram empresa no mesmo ano. Mesmos produtos. Mesmo bairro. Cinco anos depois, um fatura três vezes mais que o outro. A diferença? Um investiu num site que vende enquanto dorme. O outro ainda depende de indicação. Seu cliente está no Google agora, a pergunta é: ele está te encontrando ou encontrando o concorrente?
                </p>
                <div className="mt-6 flex items-center justify-center gap-3">
                  <div className="h-px w-12 bg-white/20"></div>
-                 <span className="text-sm font-medium text-white/50 font-geist">Five Agency — Criamos Sites que Vendem</span>
+                 <span className="text-sm font-medium text-white/50 font-geist">Five Agency · Sites que Vendem</span>
                  <div className="h-px w-12 bg-white/20"></div>
                </div>
             </div>
@@ -212,7 +250,7 @@ export default function App() {
                     <div className="bg-blue-500/20 p-1 rounded-full">
                       <iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400"></iconify-icon>
                     </div>
-                    <span className="font-geist font-medium">Pagamento Único — Sem Mensalidade</span>
+                    <span className="font-geist font-medium">Pagamento Único, Sem Mensalidade</span>
                   </li>
                   <li className="flex items-center gap-3 text-white">
                     <div className="bg-blue-500/20 p-1 rounded-full">
@@ -246,7 +284,7 @@ export default function App() {
                   </div>
                 </div>
                 <h3 className="text-xl font-medium tracking-tight font-geist text-white">Velocidade que Converte</h3>
-                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">53% dos usuários abandona um site que demora mais de 3 segundos. Entregamos sites que carregam em menos de 2s — porque cada segundo perdido é um cliente que foi embora.</p>
+                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">53% dos usuários abandona um site que demora mais de 3 segundos. Entregamos sites que carregam em menos de 2s, porque cada segundo perdido é um cliente que foi embora.</p>
               </div>
             </div>
 
@@ -259,7 +297,7 @@ export default function App() {
                   </div>
                 </div>
                 <h3 className="text-xl font-medium tracking-tight font-geist text-white">Design que Fecha Negócios</h3>
-                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">Não fazemos sites bonitos por fazer. Projetamos cada seção para guiar o visitante até o contato. Layout, cores, textos e botões — tudo estrategicamente posicionado para vender.</p>
+                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">Não fazemos sites bonitos por fazer. Projetamos cada seção para guiar o visitante até o contato. Layout, cores, textos e botões: tudo estrategicamente posicionado para vender.</p>
               </div>
             </div>
 
@@ -272,21 +310,21 @@ export default function App() {
                   </div>
                 </div>
                 <h3 className="text-xl font-medium tracking-tight font-geist text-white">Visível no Google desde o Dia 1</h3>
-                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">SEO não é opcional — é o que traz clientes enquanto você dorme. Configuramos tudo tecnicamente correto desde o início: meta tags, velocidade, estrutura e indexação.</p>
+                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">SEO não é opcional, é o que traz clientes enquanto você dorme. Configuramos tudo tecnicamente correto desde o início: meta tags, velocidade, estrutura e indexação.</p>
               </div>
             </div>
 
             {/* Big feature: Portfolio Item */}
             <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 md:col-span-3 [animation:fadeSlideIn_1s_ease-out_0.4s_both] animate-on-scroll mt-6">
               <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent z-10"></div>
-              <img src="COLE_URL_DA_SUA_IMAGEM_AQUI" alt="Case Study" className="absolute right-0 top-0 h-full w-2/3 object-cover transition-transform duration-700 group-hover:scale-105 opacity-60" />
+              <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?fm=jpg&q=60&w=3000&auto=format&fit=crop" alt="Case Study" className="absolute right-0 top-0 h-full w-2/3 object-cover transition-transform duration-700 group-hover:scale-105 opacity-60" />
               
               <div className="p-8 sm:p-12 relative z-20 h-full flex flex-col justify-center max-w-xl">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="inline-flex items-center gap-1 rounded-full border border-blue-400/30 bg-blue-400/15 px-2 py-0.5 text-[11px] font-medium text-blue-200 font-geist">Resultado Real</span>
                 </div>
                 <h3 className="text-3xl sm:text-4xl font-geist tracking-tighter">De Invisível a Referência no Bairro</h3>
-                <p className="mt-4 text-base sm:text-lg text-white/70 font-geist">Uma clínica estética sem presença online. Em 7 dias entregamos um site otimizado. Em 30 dias, os agendamentos triplicaram — vindos diretamente do Google, sem gastar um real em anúncios.</p>
+                <p className="mt-4 text-base sm:text-lg text-white/70 font-geist">Uma clínica estética sem presença online. Em 7 dias entregamos um site otimizado. Em 30 dias, os agendamentos triplicaram, vindos diretamente do Google, sem gastar um real em anúncios.</p>
                 <div className="mt-8">
                   <a href="#" className="inline-flex items-center gap-2 text-sm font-medium text-black bg-white rounded-lg px-4 py-2 hover:bg-neutral-200 transition font-geist">
                     Ver Estudo de Caso
@@ -421,23 +459,33 @@ export default function App() {
             <div className="text-center mb-10 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
               <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur font-geist">Sem Compromisso</span>
               <h2 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter text-white">Seu Próximo Cliente<br />Está a Uma Conversa de Distância.</h2>
-              <p className="mt-4 text-lg text-white/70 font-geist">Preencha abaixo. Em até 24h um especialista entra em contato — sem enrolação, sem pitch de vendas. Só uma conversa honesta sobre o que faz sentido para o seu negócio.</p>
+              <p className="mt-4 text-lg text-white/70 font-geist">Preencha abaixo. Em até 24h um especialista entra em contato, sem enrolação, sem pitch de vendas. Só uma conversa honesta sobre o que faz sentido para o seu negócio.</p>
             </div>
 
             <form onSubmit={handleFormSubmit} className="bg-black/50 border border-white/10 p-6 sm:p-10 rounded-2xl backdrop-blur-xl animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+                {formStatus === 'success' ? (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/30 mb-6">
+                      <iconify-icon icon="solar:check-circle-linear" width="32" height="32" class="text-blue-400"></iconify-icon>
+                    </div>
+                    <h3 className="text-2xl font-semibold text-white font-geist mb-3">Mensagem Enviada!</h3>
+                    <p className="text-white/70 font-geist">Recebemos o seu contato. Em até 24h um especialista entra em contato com você.</p>
+                  </div>
+                ) : (
+                  <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div className="col-span-1">
                         <label htmlFor="name" className="block text-xs font-medium text-white/60 mb-2 font-geist">Nome</label>
-                        <input type="text" id="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist placeholder-white/20" placeholder="Seu Nome" />
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist placeholder-white/20" placeholder="Seu Nome" />
                     </div>
                     <div className="col-span-1">
                         <label htmlFor="email" className="block text-xs font-medium text-white/60 mb-2 font-geist">E-mail</label>
-                        <input type="email" id="email" value={formData.email} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist placeholder-white/20" placeholder="joao@empresa.com" />
+                        <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist placeholder-white/20" placeholder="joao@empresa.com" />
                     </div>
                     <div className="col-span-1">
                          <label htmlFor="budget" className="block text-xs font-medium text-white/60 mb-2 font-geist">Orçamento Estimado</label>
                          <div className="relative">
-                            <select id="budget" value={formData.budget} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist appearance-none">
+                            <select id="budget" name="budget" value={formData.budget} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist appearance-none">
                                 <option value="" className="bg-black text-white/70">Selecione o Intervalo</option>
                                 <option value="3k-5k" className="bg-black">R$3k - R$5k</option>
                                 <option value="5k-10k" className="bg-black">R$5k - R$10k</option>
@@ -449,7 +497,7 @@ export default function App() {
                      <div className="col-span-1">
                          <label htmlFor="goal" className="block text-xs font-medium text-white/60 mb-2 font-geist">Objetivo Principal</label>
                          <div className="relative">
-                            <select id="goal" value={formData.goal} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist appearance-none">
+                            <select id="goal" name="goal" value={formData.goal} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist appearance-none">
                                 <option value="" className="bg-black text-white/70">Selecione o Objetivo</option>
                                 <option value="brand" className="bg-black">Autoridade de Marca</option>
                                 <option value="leads" className="bg-black">Geração de Leads</option>
@@ -460,15 +508,20 @@ export default function App() {
                     </div>
                     <div className="col-span-1 sm:col-span-2">
                         <label htmlFor="details" className="block text-xs font-medium text-white/60 mb-2 font-geist">Detalhes do Projeto</label>
-                        <textarea id="details" value={formData.details} onChange={handleInputChange} rows="3" required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist placeholder-white/20" placeholder="Conte-nos sobre a sua visão..."></textarea>
+                        <textarea id="details" name="details" value={formData.details} onChange={handleInputChange} rows="3" required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist placeholder-white/20" placeholder="Conte-nos sobre a sua visão..."></textarea>
                     </div>
                 </div>
                 <div className="mt-8 text-center">
-                    <button type="submit" className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500 px-8 py-4 text-sm font-semibold text-white hover:bg-blue-400 transition font-geist shadow-[0_0_30px_rgba(59,130,246,0.3)] w-full sm:w-auto justify-center">
-                        Quero Ser Encontrado no Google
-                        <iconify-icon icon="solar:arrow-right-linear" width="24" height="24" class="w-4 h-4"></iconify-icon>
+                    {formStatus === 'error' && (
+                      <p className="text-red-400 text-sm font-geist mb-4">Algo deu errado. Tente novamente ou fale pelo WhatsApp.</p>
+                    )}
+                    <button type="submit" disabled={formStatus === 'sending'} className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500 px-8 py-4 text-sm font-semibold text-white hover:bg-blue-400 transition font-geist shadow-[0_0_30px_rgba(59,130,246,0.3)] w-full sm:w-auto justify-center disabled:opacity-60 disabled:cursor-not-allowed">
+                        {formStatus === 'sending' ? 'Enviando...' : 'Quero Ser Encontrado no Google'}
+                        {formStatus !== 'sending' && <iconify-icon icon="solar:arrow-right-linear" width="24" height="24" class="w-4 h-4"></iconify-icon>}
                     </button>
                 </div>
+                  </>
+                )}
             </form>
           </div>
         </section>
@@ -481,7 +534,7 @@ export default function App() {
                 <a href="/" className="flex items-center gap-2">
                   <img src="https://i.ibb.co/ZRc2kt2R/logotype.png" alt="Five Agency" className="h-6 w-auto" />
                 </a>
-                <p className="mt-4 text-sm text-white/70 max-w-md font-geist">Transformamos pequenos negócios em referências digitais. Sites que vendem, carregam rápido e aparecem no Google — entregues em até 7 dias, pagamento único.</p>
+                <p className="mt-4 text-sm text-white/70 max-w-md font-geist">Transformamos pequenos negócios em referências digitais. Sites que vendem, carregam rápido e aparecem no Google, entregues em até 7 dias, pagamento único.</p>
               </div>
 
               <div>
