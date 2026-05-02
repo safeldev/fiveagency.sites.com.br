@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Custom keyframes ── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInBlur {
+  from { opacity: 0; transform: translateY(8px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0px); }
+}
+
+/* ── animate-on-scroll base state ── */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.animate-on-scroll.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Hero group-hover button text swap + blur ── */
+.hero-btn-text {
+  transition: transform 0.5s ease, opacity 0.5s ease, filter 0.5s ease;
+}
+.group:hover .hero-btn-text {
+  transform: translateY(32px);
+  opacity: 0;
+  filter: blur(4px);
+}
+
+.hero-btn-text-hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-32px);
+  opacity: 0;
+  filter: blur(4px);
+  transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+}
+.group:hover .hero-btn-text-hover {
+  transform: translateY(0);
+  opacity: 1;
+  filter: blur(0px);
+}
+
+/* ── Nav CTA slideInBlur ── */
+.nav-cta-anim {
+  opacity: 0;
+  animation: slideInBlur 0.8s ease-out 1.2s forwards;
+}
+
+/* ── Bottom gradient line on nav CTA hover ── */
+.nav-cta-line {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  right: 50%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, white, transparent);
+  opacity: 0.8;
+  transition: left 0.5s ease-out, right 0.5s ease-out;
+  pointer-events: none;
+}
+.group:hover .nav-cta-line {
+  left: 0;
+  right: 0;
+}
+
+/* ── Hero bottom shine on hover ── */
+.hero-btn-shine {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  height: 1px;
+  width: 70%;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, transparent, #e5e5e5, transparent);
+  border-radius: 9999px;
+  filter: blur(2px);
+  opacity: 0;
+  transition: opacity 1000ms cubic-bezier(0.15, 0.83, 0.66, 1);
+}
+.group:hover .hero-btn-shine {
+  opacity: 0.8;
+}
+
+/* ── Grayscale card ── */
+.grayscale-card {
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition: opacity 0.2s, filter 0.2s;
+}
+.grayscale-card:hover {
+  filter: grayscale(0);
+  opacity: 0.8;
+}
+
+/* ── Portfolio image hover ── */
+.portfolio-img {
+  transition: transform 0.7s ease;
+}
+.portfolio-card:hover .portfolio-img {
+  transform: scale(1.05);
+}
+
+/* ── Inputs ── */
+input, select, textarea {
+  color: #fff;
+}
+input::placeholder, textarea::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+select option {
+  background: #000;
+}
