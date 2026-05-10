@@ -29,6 +29,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const [pricingTab, _setPricingTab] = useState('sites');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleMobileMenu = () => setMobileMenuOpen(prev => !prev);
 
   useEffect(() => {
     // Lock scroll while loading
@@ -305,7 +308,30 @@ export default function App() {
               </button>
             </nav>
 
-            {/* Hero */}
+            {/* Mobile Menu Dropdown */}
+            {mobileMenuOpen && (
+              <div className="md:hidden absolute left-4 right-4 top-20 z-50 rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+                <div className="flex flex-col p-4 gap-1">
+                  <a href="#manifesto" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition font-geist">
+                    <iconify-icon icon="solar:star-linear" width="18" height="18" class="text-blue-400"></iconify-icon>
+                    A Diferença
+                  </a>
+                  <a href="#ecosystem" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition font-geist">
+                    <iconify-icon icon="solar:monitor-smartphone-linear" width="18" height="18" class="text-blue-400"></iconify-icon>
+                    O Que Fazemos
+                  </a>
+                  <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition font-geist">
+                    <iconify-icon icon="solar:tag-price-linear" width="18" height="18" class="text-blue-400"></iconify-icon>
+                    Serviços e Preços
+                  </a>
+                  <div className="h-px bg-white/10 my-2"></div>
+                  <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20gostaria%20de%20saber%20mais%20sobre%20os%20servi%C3%A7os!" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-blue-500 hover:bg-blue-400 transition font-geist">
+                    <iconify-icon icon="solar:chat-round-line-linear" width="18" height="18"></iconify-icon>
+                    Falar com Especialista
+                  </a>
+                </div>
+              </div>
+            )}
             <section className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
               <h1 style={{animation:'fadeSlideIn 1s ease-out 0.2s forwards', opacity:0}} className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
                 Sites. Design. Tráfego Pago.<br />Apareça no Google. Venda Enquanto Dorme.
