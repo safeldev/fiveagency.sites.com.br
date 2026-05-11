@@ -417,13 +417,13 @@ export default function App() {
               </div>
             )}
             <section className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
-              <h1 style={{animation:'fadeSlideIn 1s ease-out 0.2s forwards', opacity:0}} className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
+              <h1 className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
                 Seu Próximo Cliente Está no Google Agora.<br /><span className="headline-underline">Ele Vai Encontrar Você, ou o Seu Concorrente.</span>
               </h1>
-              <p className="sm:text-lg [animation:fadeSlideIn_1s_ease-out_0.3s_both] text-base font-normal text-white/70 font-geist max-w-2xl mt-6 mr-auto ml-auto">
+              <p className="sm:text-lg text-base font-normal text-white/70 font-geist max-w-2xl mt-6 mr-auto ml-auto">
                 A Five Agency cria sites que aparecem, identidades visuais que convencem e campanhas que geram leads todo dia. Do briefing ao ar em até 7 dias.
               </p>
-              <div className="flex flex-col sm:flex-row [animation:fadeSlideIn_1s_ease-out_0.4s_both] mt-8 gap-x-3 gap-y-3 items-center justify-center">
+              <div className="flex flex-col sm:flex-row mt-8 gap-x-3 gap-y-3 items-center justify-center">
                 <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20quero%20aparecer%20no%20Google!" target="_blank" rel="noopener noreferrer" className="group relative inline-flex min-w-[140px] cursor-pointer transition-all duration-[1000ms] ease-[cubic-bezier(0.15,0.83,0.66,1)] hover:-translate-y-[3px] hover:text-white shadow-[0_2.8px_2.2px_rgba(0,0,0,0.3),_0_6.7px_5.3px_rgba(0,0,0,0.35),_0_12.5px_10px_rgba(0,0,0,0.4)] overflow-hidden font-semibold text-neutral-400 tracking-tight bg-neutral-800 border-neutral-600 border rounded-full pt-[12px] pr-[20px] pb-[12px] pl-[20px] items-center justify-center">
                   <span className="relative z-10 font-medium rounded-full transition-all duration-500 ease-out group-hover:transform group-hover:translate-y-8 group-hover:opacity-0 group-hover:blur-md font-geist">Quero Aparecer no Google</span>
                   <span className="absolute inset-0 z-10 flex items-center justify-center transition-all duration-300 ease-in-out transform -translate-y-8 group-hover:translate-y-0 group-hover:opacity-100 group-hover:blur-none font-medium opacity-0 rounded-full blur-md font-geist">Falar Agora</span>
@@ -433,15 +433,15 @@ export default function App() {
                   Ver Como Funciona
                 </a>
               </div>
-              <p className="[animation:fadeSlideIn_1s_ease-out_0.5s_both] text-xs text-white/40 font-geist mt-4">✓ Sem mensalidade &nbsp; ✓ Entrega em até 7 dias &nbsp; ✓ Resposta em 24h</p>
+              <p className="text-xs text-white/40 font-geist mt-4">✓ Sem mensalidade &nbsp; ✓ Entrega em até 7 dias &nbsp; ✓ Resposta em 24h</p>
             </section>
           </div>
         </header>
 
         {/* Trusted By */}
         <section className="z-10 sm:px-6 lg:px-8 max-w-7xl mt-12 mr-auto ml-auto pr-6 pb-16 pl-6 relative">
-          <p className="[animation:fadeSlideIn_1s_ease-out_0.5s_both] text-sm font-medium text-white/50 text-center mb-6 font-geist">Empresas que já escolheram crescer com a Five Agency</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-x-8 gap-y-8 items-center justify-items-center [animation:fadeSlideIn_1s_ease-out_0.6s_both]">
+          <p className="text-sm font-medium text-white/50 text-center mb-6 font-geist">Empresas que já escolheram crescer com a Five Agency</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-x-8 gap-y-8 items-center justify-items-center">
             <div className="inline-flex items-center justify-center bg-center w-[100px] h-[40px] bg-[url('https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/d052699d-f578-4c01-9806-f5b6c8609489_320w.png')] bg-cover rounded invert opacity-60 hover:opacity-100 transition-opacity"></div>
             <div className="inline-flex items-center justify-center bg-center w-[100px] h-[40px] bg-[url('https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/3185425e-0207-434a-9554-cdb5bd455ea5_320w.png')] bg-cover rounded opacity-60 hover:opacity-100 transition-opacity"></div>
             <div className="inline-flex items-center justify-center bg-center w-[100px] h-[40px] bg-[url('https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/6c26c041-308e-4034-9227-5a6c57d94f4d_1600w.png')] bg-cover rounded opacity-60 hover:opacity-100 transition-opacity"></div>
@@ -698,57 +698,68 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Card 1 - Presença Imediata R$999,99 */}
                 <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full hover:bg-white/[0.07] transition-colors duration-300">
-                  <div className="relative flex flex-col gap-1 mb-6">
+                  <div className="relative flex flex-col gap-1 mb-4">
                     <h3 className="text-lg text-white font-medium tracking-tight font-geist">Presença Imediata</h3>
                     <p className="text-xs text-white/50 font-geist">Para quem precisa estar online rápido, com profissionalismo.</p>
                   </div>
-                  <div className="relative mb-6">
+                  <div className="relative mb-4">
                     <div className="flex items-end gap-1">
-                      <p className="text-3xl lg:text-4xl text-white font-geist tracking-tighter">R$1.999</p>
+                      <p className="text-3xl lg:text-4xl text-white font-geist tracking-tighter">R$999<span className="text-2xl">,99</span></p>
                       <span className="text-white/40 text-xs mb-1.5 font-geist uppercase tracking-wide">/ único</span>
                     </div>
-                    <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-white/70 font-geist">
+                    <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-white/70 font-geist">
                       <iconify-icon icon="solar:clock-circle-linear" width="12" height="12"></iconify-icon>
                       Entrega em 48 horas
                     </div>
                   </div>
-                  <ul className="space-y-3.5 flex-1 mb-8">
+                  {/* Benefício destaque */}
+                  <div className="mb-4 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
+                    <p className="text-xs text-white/80 font-geist font-medium leading-relaxed">✦ Enquanto seu concorrente não tem site, você já aparece no Google e fecha negócio.</p>
+                  </div>
+                  <ul className="space-y-3 flex-1 mb-6">
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">1 Landing Page Profissional</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">Responsivo: Celular e Desktop</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">Domínio Incluso por 1 Ano</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">Botão Direto para seu WhatsApp</span></li>
                   </ul>
-                  <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20tenho%20interesse%20no%20plano%20Presen%C3%A7a%20Imediata%20(site%20por%20R%241.999).%20Pode%20me%20passar%20mais%20informa%C3%A7%C3%B5es%3F" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center h-10 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition font-geist border border-white/10">Quero Este Site</a>
+                  <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20tenho%20interesse%20no%20plano%20Presen%C3%A7a%20Imediata%20(site%20por%20R%24999%2C99).%20Pode%20me%20passar%20mais%20informa%C3%A7%C3%B5es%3F" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center h-10 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition font-geist border border-white/10">Quero Este Site</a>
                 </article>
 
+                {/* Card 2 - Autoridade Digital R$2.499 */}
                 <article className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
                   <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% -20%, rgba(59, 130, 246, 0.12), transparent 70%)' }}></div>
-                  <div className="relative flex flex-col gap-1 mb-6">
+                  <div className="relative flex flex-col gap-1 mb-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg text-white font-semibold tracking-tight font-geist">Autoridade Digital</h3>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-blue-950 bg-blue-400 font-geist">Recomendado</span>
                     </div>
                     <p className="text-xs text-blue-200/60 font-geist">Para negócios que querem ser a referência do segmento.</p>
                   </div>
-                  <div className="relative mb-6">
-                    <div className="flex items-end gap-1">
-                      <p className="text-3xl lg:text-4xl text-white font-geist tracking-tighter">R$4.999</p>
+                  <div className="relative mb-4">
+                    <div className="flex items-end gap-2 flex-wrap">
+                      <p className="text-3xl lg:text-4xl text-white font-geist tracking-tighter">R$2.499</p>
                       <span className="text-white/40 text-xs mb-1.5 font-geist uppercase tracking-wide">/ único</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-green-900 bg-green-400 mb-1.5">50% acima da concorrência entregado</span>
                     </div>
-                    <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-200 font-geist">
+                    <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-200 font-geist">
                       <iconify-icon icon="solar:clock-circle-linear" width="12" height="12"></iconify-icon>
                       Entrega em 5 a 7 dias
                     </div>
                   </div>
-                  <ul className="space-y-3.5 flex-1 mb-8">
+                  {/* Benefício destaque */}
+                  <div className="mb-4 rounded-xl bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
+                    <p className="text-xs text-blue-200 font-geist font-medium leading-relaxed">✦ Site completo com SEO, múltiplas páginas e design exclusivo — mais resultado que agências que cobram R$8.000+.</p>
+                  </div>
+                  <ul className="space-y-3 flex-1 mb-6">
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">Até 3 Páginas Estratégicas</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">Domínio Incluso por 1 Ano</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">SEO Técnico e Indexação no Google</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">Integração com Redes Sociais</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">Design Exclusivo para o seu Segmento</span></li>
                   </ul>
-                  <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20tenho%20interesse%20no%20plano%20Autoridade%20Digital%20(site%20por%20R%244.999).%20Pode%20me%20passar%20mais%20informa%C3%A7%C3%B5es%3F" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center h-10 rounded-lg bg-blue-500 text-white text-xs font-semibold hover:bg-blue-400 transition font-geist shadow-[0_0_30px_rgba(59,130,246,0.3)]">Quero Este Site</a>
+                  <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20tenho%20interesse%20no%20plano%20Autoridade%20Digital%20(site%20por%20R%242.499).%20Pode%20me%20passar%20mais%20informa%C3%A7%C3%B5es%3F" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center h-10 rounded-lg bg-blue-500 text-white text-xs font-semibold hover:bg-blue-400 transition font-geist shadow-[0_0_30px_rgba(59,130,246,0.3)]">Quero Este Site</a>
                 </article>
               </div>
             </div>
@@ -917,8 +928,8 @@ export default function App() {
                             <select id="goal" name="goal" value={formData.goal} onChange={handleInputChange} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition font-geist appearance-none">
                                 <option value="" className="bg-black text-white/70">Selecione o Serviço</option>
                                 <optgroup label="── Sites Profissionais ──" className="bg-black text-white/40">
-                                <option value="site-essencial" className="bg-black">Site Presença Imediata (R$1.999)</option>
-                                <option value="site-autoridade" className="bg-black">Site Autoridade Digital (R$4.999)</option>
+                                <option value="site-essencial" className="bg-black">Site Presença Imediata (R$999,99)</option>
+                                <option value="site-autoridade" className="bg-black">Site Autoridade Digital (R$2.499)</option>
                                 </optgroup>
                                 <optgroup label="── Tráfego Pago ──" className="bg-black text-white/40">
                                 <option value="trafego-essencial" className="bg-black">Tráfego Plano Essencial (R$1.200/mês)</option>
