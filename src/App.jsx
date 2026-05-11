@@ -142,8 +142,8 @@ export default function App() {
 
     // ── Intersection Observer: fade-in + stagger + counters ──
     const observerOptions = {
-      threshold: 0.15,
-      rootMargin: "0px 0px -10% 0px"
+      threshold: 0.12,
+      rootMargin: "0px 0px -5% 0px"
     };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -166,9 +166,25 @@ export default function App() {
         }
       });
     }, observerOptions);
+
+    // Only observe elements that are NOT already in the viewport on load
     document.querySelectorAll(".animate-on-scroll").forEach((el) => {
-      observer.observe(el);
+      const rect = el.getBoundingClientRect();
+      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inViewport) {
+        // Already visible — animate immediately without observer
+        requestAnimationFrame(() => {
+          el.classList.add("animate");
+          el.querySelectorAll('.stagger-child').forEach((child, i) => {
+            child.style.transitionDelay = `${i * 120}ms`;
+            child.classList.add('animate');
+          });
+        });
+      } else {
+        observer.observe(el);
+      }
     });
+
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', onScroll);
@@ -283,6 +299,7 @@ export default function App() {
           @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
           .animate-on-scroll { opacity: 0; transform: translateY(28px); transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
           .animate-on-scroll.animate { opacity: 1; transform: translateY(0); }
+          .hero-visible { opacity: 1 !important; transform: none !important; }
           .stagger-child { opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease-out, transform 0.45s ease-out; }
           .stagger-child.animate { opacity: 1; transform: translateY(0); }
           header { position: sticky; top: 0; z-index: 1000; }
@@ -401,7 +418,7 @@ export default function App() {
             )}
             <section className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
               <h1 style={{animation:'fadeSlideIn 1s ease-out 0.2s forwards', opacity:0}} className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
-                Seu Próximo Cliente Está no Google Agora.<br /><span className="headline-underline">Ele Vai Encontrar Você — ou o Seu Concorrente.</span>
+                Seu Próximo Cliente Está no Google Agora.<br /><span className="headline-underline">Ele Vai Encontrar Você, ou o Seu Concorrente.</span>
               </h1>
               <p className="sm:text-lg [animation:fadeSlideIn_1s_ease-out_0.3s_both] text-base font-normal text-white/70 font-geist max-w-2xl mt-6 mr-auto ml-auto">
                 A Five Agency cria sites que aparecem, identidades visuais que convencem e campanhas que geram leads todo dia. Do briefing ao ar em até 7 dias.
@@ -437,15 +454,15 @@ export default function App() {
         {/* 1. THE MANIFESTO */}
         <section id="manifesto" className="relative py-24 border-y border-white/5 bg-white/[0.02]">
           <div className="sm:px-6 lg:px-8 max-w-4xl mr-auto ml-auto pr-6 pl-6 text-center">
-            <h2 style={{animation:'fadeSlideIn 1s ease-out 0.1s both'}} className="text-xs font-semibold tracking-wider text-blue-500 uppercase font-geist animate-on-scroll">A Realidade do Mercado</h2>
-            <h3 className="mt-4 text-3xl sm:text-5xl font-geist tracking-tighter text-white animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+            <h2 className="text-xs font-semibold tracking-wider text-blue-500 uppercase font-geist animate-on-scroll">A Realidade do Mercado</h2>
+            <h3 className="mt-4 text-3xl sm:text-5xl font-geist tracking-tighter text-white animate-on-scroll">
               <span className="headline-underline">Dois Negócios. Mesma Cidade.</span><br />Resultados Completamente Diferentes.
             </h3>
             
-            <div className="mt-10 relative bg-neutral-900/50 border border-white/10 rounded-2xl p-8 sm:p-12 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.3s_both]">
+            <div className="mt-10 relative bg-neutral-900/50 border border-white/10 rounded-2xl p-8 sm:p-12 animate-on-scroll">
                <iconify-icon icon="solar:quote-left-bold" width="32" height="32" class="absolute top-6 left-6 text-white/20 transform -translate-x-2 -translate-y-2"></iconify-icon>
                <p className="relative text-lg sm:text-xl text-white/80 font-geist leading-relaxed">
-                 Um acorda todo dia com novos leads chegando — pessoas que pesquisaram no Google, viram o site, e já chegaram prontas para comprar.<br /><br />
+                 Um acorda todo dia com novos leads chegando, pessoas que pesquisaram no Google, viram o site, e já chegaram prontas para comprar.<br /><br />
                  O outro espera o telefone tocar. Depende de indicação. Torce pra semana ser boa.<br /><br />
                  A diferença não é talento. Não é sorte. Não é capital. É presença digital feita do jeito certo. É isso que a Five Agency faz.
                </p>
@@ -461,12 +478,12 @@ export default function App() {
         {/* 2. US VS THEM */}
         <section className="relative py-24 overflow-hidden">
           <div className="sm:px-6 lg:px-8 max-w-7xl mr-auto ml-auto pr-6 pl-6">
-            <div className="text-center mb-16 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
+            <div className="text-center mb-16 animate-on-scroll">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter">O Que Muda Quando Você Para de Esperar<br />e Começa a Aparecer</h2>
               <p className="mt-4 text-white/60 font-geist max-w-2xl mx-auto">Não é sorte. Não é capital. É presença digital estratégica, site, design e tráfego trabalhando juntos.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+            <div className="grid md:grid-cols-2 gap-8 animate-on-scroll">
               {/* Them */}
               <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-6 opacity-60 grayscale transition hover:opacity-80 hover:grayscale-0">
                 <h3 className="text-xl font-medium text-white/50 font-geist">Sem Presença Digital</h3>
@@ -546,15 +563,15 @@ export default function App() {
         <section className="z-10 sm:px-6 lg:px-8 max-w-7xl mr-auto ml-auto pt-8 pr-6 pb-20 pl-6 relative" id="ecosystem">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
             <div>
-              <p className="text-sm font-medium text-white/50 font-geist [animation:fadeSlideIn_1s_ease-out_0.1s_both] animate-on-scroll">O Que Entregamos</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter [animation:fadeSlideIn_1s_ease-out_0.2s_both] animate-on-scroll">Sites, Design e Tráfego.<br />Tudo que Seu Negócio Precisa para Vender Online.</h2>
-              <p className="mt-3 text-base text-white/70 font-geist [animation:fadeSlideIn_1s_ease-out_0.3s_both] animate-on-scroll">Para empresas que querem crescer com consistência, sem depender de indicação.</p>
+              <p className="text-sm font-medium text-white/50 font-geist animate-on-scroll">O Que Entregamos</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter animate-on-scroll">Sites, Design e Tráfego.<br />Tudo que Seu Negócio Precisa para Vender Online.</h2>
+              <p className="mt-3 text-base text-white/70 font-geist animate-on-scroll">Para empresas que querem crescer com consistência, sem depender de indicação.</p>
             </div>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3 gap-x-6 gap-y-6">
             {/* Card 1: Sites */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 [animation:fadeSlideIn_1s_ease-out_0.5s_both] animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
               <div className="sm:p-8 pt-6 pr-6 pb-6 pl-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -567,7 +584,7 @@ export default function App() {
             </div>
 
             {/* Card 2: Design */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 [animation:fadeSlideIn_1s_ease-out_0.6s_both] animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
                <div className="sm:p-8 pt-6 pr-6 pb-6 pl-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
@@ -576,12 +593,12 @@ export default function App() {
                 </div>
                 <p className="text-xs text-purple-300/60 font-geist mb-1">Instagram · Posts · Criativos · Logos · Identidade Visual</p>
                 <h3 className="text-xl font-medium tracking-tight font-geist text-white">Design que Representa. Identidade que Vende.</h3>
-                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">Criamos a identidade completa da sua empresa e colocamos para trabalhar nas redes — posts, stories, criativos para anúncios e artes de campanha. Tudo com uma cara só, profissional e consistente.</p>
+                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">Criamos a identidade completa da sua empresa e colocamos para trabalhar nas redes, posts, stories, criativos para anúncios e artes de campanha. Tudo com uma cara só, profissional e consistente.</p>
               </div>
             </div>
 
             {/* Card 3: SEO */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 [animation:fadeSlideIn_1s_ease-out_0.7s_both] animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
               <div className="sm:p-8 pt-6 pr-6 pb-6 pl-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -589,12 +606,12 @@ export default function App() {
                   </div>
                 </div>
                 <h3 className="text-xl font-medium tracking-tight font-geist text-white">Apareça no Google Desde o Primeiro Dia</h3>
-                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">SEO não é luxo. É o que faz seu site trabalhar por você enquanto você dorme. Configuramos tudo certo desde o início — sem gambiarras.</p>
+                <p className="mt-3 text-sm text-white/70 font-geist leading-relaxed">SEO não é luxo. É o que faz seu site trabalhar por você enquanto você dorme. Configuramos tudo certo desde o início, sem gambiarras.</p>
               </div>
             </div>
 
             {/* Big feature: Portfolio Item */}
-            <div className="group relative overflow-hidden rounded-2xl border border-white/10 md:col-span-3 [animation:fadeSlideIn_1s_ease-out_0.4s_both] animate-on-scroll mt-6" style={{ minHeight: '320px' }}>
+            <div className="group relative overflow-hidden rounded-2xl border border-white/10 md:col-span-3 animate-on-scroll mt-6" style={{ minHeight: '320px' }}>
               <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?fm=jpg&q=60&w=3000&auto=format&fit=crop" alt="Case Study" className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20 z-10"></div>
               
@@ -619,7 +636,7 @@ export default function App() {
         {/* 4. PROCESS PATH */}
         <section className="py-24 bg-white/[0.02] border-y border-white/5 relative">
             <div className="sm:px-6 lg:px-8 max-w-7xl mr-auto ml-auto pr-6 pl-6">
-                 <div className="text-center mb-16 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
+                 <div className="text-center mb-16 animate-on-scroll">
                     <p className="text-xs font-semibold tracking-wider text-blue-500 uppercase font-geist mb-3">Como Funciona</p>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter">Do Briefing ao Resultado em 7 Dias. Sem Burocracia.</h2>
                     <p className="mt-4 text-white/60 font-geist">Sem burocracia. Sem reuniões infinitas. Você foca no seu negócio, a gente cuida do digital.</p>
@@ -628,7 +645,7 @@ export default function App() {
                 <div className="relative grid md:grid-cols-3 gap-8">
                     <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
-                    <div className="relative flex flex-col items-center text-center animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+                    <div className="relative flex flex-col items-center text-center animate-on-scroll">
                         <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center relative z-10 mb-6 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                             <span className="text-xl font-bold font-geist text-white">01</span>
                         </div>
@@ -636,7 +653,7 @@ export default function App() {
                         <p className="text-sm text-white/60 font-geist leading-relaxed max-w-xs">Você nos conta sobre seu negócio, público e objetivo. Sem formulário longo, sem call de 1 hora.</p>
                     </div>
 
-                    <div className="relative flex flex-col items-center text-center animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.3s_both]">
+                    <div className="relative flex flex-col items-center text-center animate-on-scroll">
                         <div className="w-16 h-16 rounded-full bg-black border border-blue-500/50 flex items-center justify-center relative z-10 mb-6 shadow-[0_0_20px_rgba(59,130,246,0.2)]">
                             <span className="text-xl font-bold font-geist text-blue-400">02</span>
                         </div>
@@ -644,7 +661,7 @@ export default function App() {
                         <p className="text-sm text-white/60 font-geist leading-relaxed max-w-xs">Site, design ou campanha: desenvolvemos com velocidade e qualidade. Você aprova tudo antes de publicar.</p>
                     </div>
 
-                     <div className="relative flex flex-col items-center text-center animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.4s_both]">
+                     <div className="relative flex flex-col items-center text-center animate-on-scroll">
                         <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center relative z-10 mb-6 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                             <span className="text-xl font-bold font-geist text-white">03</span>
                         </div>
@@ -658,7 +675,7 @@ export default function App() {
         {/* Pricing Section */}
         <section className="sm:p-8 sm:ml-8 sm:mr-8 sm:mb-10 mt-10 mr-4 mb-10 ml-4 pt-6 pr-4 pb-6 pl-4" id="pricing">
           <div className="relative">
-            <div className="relative max-w-5xl mx-auto text-center [animation:fadeSlideIn_1s_ease-out_0.1s_both] animate-on-scroll">
+            <div className="relative max-w-5xl mx-auto text-center animate-on-scroll">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/80">
                 <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
                 <span className="text-xs font-normal font-geist">Nossos Serviços</span>
@@ -846,13 +863,13 @@ export default function App() {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
           <div className="sm:px-6 lg:px-8 max-w-3xl mr-auto ml-auto pr-4 pl-4 relative z-10">
             
-            <div className="text-center mb-10 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
+            <div className="text-center mb-10 animate-on-scroll">
               <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur font-geist">Sem Compromisso · Resposta em até 24h</span>
               <h2 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter text-white">Pronto pra Aparecer no Google<br />e Vender Enquanto Dorme?</h2>
               <p className="mt-4 text-lg text-white/70 font-geist">Preencha abaixo. Em até 24h um especialista entra em contato, sem pitch e sem enrolação.</p>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="bg-black/50 border border-white/10 p-6 sm:p-10 rounded-2xl backdrop-blur-xl animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+            <form onSubmit={handleFormSubmit} className="bg-black/50 border border-white/10 p-6 sm:p-10 rounded-2xl backdrop-blur-xl animate-on-scroll">
                 {formStatus === 'success' ? (
                   <div className="text-center py-12">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/30 mb-6">
