@@ -44,7 +44,7 @@ export default function App() {
 
     const tryFinish = () => {
       if (unicornLoaded && pageLoaded) {
-        // Small extra delay so UnicornScene renders first
+        // Extra delay so UnicornScene fully renders before fade
         setTimeout(() => {
           setFadeOut(true);
           setTimeout(() => {
@@ -53,15 +53,20 @@ export default function App() {
             document.body.style.position = '';
             document.body.style.width = '';
           }, 700);
-        }, 500);
+        }, 800);
       }
     };
 
-    // Wait for full page load (images, fonts, etc.)
+    // Check page load — handle case where 'load' already fired
     if (document.readyState === 'complete') {
       pageLoaded = true;
+      // Don't call tryFinish yet — wait for unicorn
     } else {
-      const onLoad = () => { pageLoaded = true; tryFinish(); };
+      const onLoad = () => {
+        window.removeEventListener('load', onLoad);
+        pageLoaded = true;
+        tryFinish();
+      };
       window.addEventListener('load', onLoad);
     }
 
@@ -75,7 +80,6 @@ export default function App() {
       unicornLoaded = true;
       tryFinish();
     }).catch(() => {
-      // Even on error, don't block forever
       unicornLoaded = true;
       tryFinish();
     });
@@ -85,7 +89,7 @@ export default function App() {
       pageLoaded = true;
       unicornLoaded = true;
       tryFinish();
-    }, 7000);
+    }, 6000);
 
     return () => {
       clearTimeout(fallback);
@@ -97,99 +101,109 @@ export default function App() {
 
   useEffect(() => {
     if (loading) return;
-    // ── Scroll progress bar ──
-    const progressBar = document.createElement('div');
-    progressBar.id = 'scroll-progress';
-    Object.assign(progressBar.style, {
-      position: 'fixed', top: '0', left: '0', height: '3px', width: '0%',
-      background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
-      zIndex: '99999', transition: 'width 0.1s linear', pointerEvents: 'none'
-    });
-    document.body.appendChild(progressBar);
 
-    // ── Navbar hide/show on scroll ──
-    let lastScrollY = window.scrollY;
-    const navbar = document.querySelector('header');
-    const onScroll = () => {
-      const curr = window.scrollY;
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      progressBar.style.width = total > 0 ? `${(curr / total) * 100}%` : '0%';
-      if (navbar) {
-        if (curr > lastScrollY && curr > 80) {
-          navbar.style.transform = 'translateY(-100%)';
-          navbar.style.transition = 'transform 0.3s ease';
-        } else {
-          navbar.style.transform = 'translateY(0)';
-          navbar.style.backdropFilter = curr > 10 ? 'blur(12px)' : '';
+    // Give browser a frame to paint before measuring positions
+    const init = () => {
+      // ── Scroll progress bar ──
+      const existing = document.getElementById('scroll-progress');
+      if (existing) existing.remove();
+      const progressBar = document.createElement('div');
+      progressBar.id = 'scroll-progress';
+      Object.assign(progressBar.style, {
+        position: 'fixed', top: '0', left: '0', height: '3px', width: '0%',
+        background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
+        zIndex: '99999', transition: 'width 0.1s linear', pointerEvents: 'none'
+      });
+      document.body.appendChild(progressBar);
+
+      // ── Navbar hide/show on scroll ──
+      let lastScrollY = window.scrollY;
+      const navbar = document.querySelector('header');
+      const onScroll = () => {
+        const curr = window.scrollY;
+        const total = document.documentElement.scrollHeight - window.innerHeight;
+        progressBar.style.width = total > 0 ? `${(curr / total) * 100}%` : '0%';
+        if (navbar) {
+          if (curr > lastScrollY && curr > 80) {
+            navbar.style.transform = 'translateY(-100%)';
+            navbar.style.transition = 'transform 0.3s ease';
+          } else {
+            navbar.style.transform = 'translateY(0)';
+            navbar.style.backdropFilter = curr > 10 ? 'blur(12px)' : '';
+          }
         }
-      }
-      lastScrollY = curr;
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    // ── Counter animation for Case Study metrics ──
-    const animateCounter = (el, target, suffix = '') => {
-      const duration = 1500;
-      const start = performance.now();
-      const update = (now) => {
-        const progress = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.round(ease * target) + suffix;
-        if (progress < 1) requestAnimationFrame(update);
+        lastScrollY = curr;
       };
-      requestAnimationFrame(update);
-    };
+      window.addEventListener('scroll', onScroll, { passive: true });
 
-    // ── Intersection Observer: fade-in + stagger + counters ──
-    const observerOptions = {
-      threshold: 0.12,
-      rootMargin: "0px 0px -5% 0px"
-    };
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("animate");
-          // Stagger children if marked
-          const children = entry.target.querySelectorAll('.stagger-child');
-          children.forEach((child, i) => {
-            child.style.transitionDelay = `${i * 120}ms`;
-            child.classList.add('animate');
+      // ── Counter animation ──
+      const animateCounter = (el, target, suffix = '') => {
+        if (el.dataset.counted) return;
+        el.dataset.counted = '1';
+        const duration = 1500;
+        const start = performance.now();
+        const update = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(ease * target) + suffix;
+          if (progress < 1) requestAnimationFrame(update);
+        };
+        requestAnimationFrame(update);
+      };
+
+      // ── Hero section: force visible, never animate ──
+      const heroSection = document.querySelector('#hero-content');
+      if (heroSection) {
+        heroSection.querySelectorAll('*').forEach(el => {
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+        });
+      }
+
+      // ── Intersection Observer ──
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate');
+            entry.target.querySelectorAll('.stagger-child').forEach((child, i) => {
+              setTimeout(() => child.classList.add('animate'), i * 120);
+            });
+            entry.target.querySelectorAll('[data-counter]').forEach(el => {
+              animateCounter(el, parseInt(el.dataset.counter), el.dataset.suffix || '');
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -5% 0px' });
+
+      // Observe only elements below the fold
+      document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        // If already visible in viewport, animate immediately
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          el.classList.add('animate');
+          el.querySelectorAll('.stagger-child').forEach((child, i) => {
+            setTimeout(() => child.classList.add('animate'), i * 120);
           });
-          // Counter elements
-          const counters = entry.target.querySelectorAll('[data-counter]');
-          counters.forEach(el => {
-            const val = parseInt(el.dataset.counter);
-            const suffix = el.dataset.suffix || '';
-            animateCounter(el, val, suffix);
-          });
-          observer.unobserve(entry.target);
+        } else {
+          observer.observe(el);
         }
       });
-    }, observerOptions);
 
-    // Only observe elements that are NOT already in the viewport on load
-    document.querySelectorAll(".animate-on-scroll").forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
-      if (inViewport) {
-        // Already visible — animate immediately without observer
-        requestAnimationFrame(() => {
-          el.classList.add("animate");
-          el.querySelectorAll('.stagger-child').forEach((child, i) => {
-            child.style.transitionDelay = `${i * 120}ms`;
-            child.classList.add('animate');
-          });
-        });
-      } else {
-        observer.observe(el);
-      }
-    });
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', onScroll);
-      progressBar.remove();
+      return () => {
+        observer.disconnect();
+        window.removeEventListener('scroll', onScroll);
+        progressBar.remove();
+      };
     };
+
+    // Small delay to ensure paint is complete after loading screen disappears
+    const timer = setTimeout(() => {
+      const cleanup = init();
+      return cleanup;
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [loading]);
 
 
@@ -416,7 +430,7 @@ export default function App() {
                 </div>
               </div>
             )}
-            <section className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
+            <section id="hero-content" className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
               <h1 className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
                 Seu Próximo Cliente Está no Google Agora.<br /><span className="headline-underline">Ele Vai Encontrar Você, ou o Seu Concorrente.</span>
               </h1>
@@ -700,25 +714,21 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card 1 - Presença Imediata R$999,99 */}
                 <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full hover:bg-white/[0.07] transition-colors duration-300">
-                  <div className="relative flex flex-col gap-1 mb-4">
+                  <div className="relative flex flex-col gap-1 mb-6">
                     <h3 className="text-lg text-white font-medium tracking-tight font-geist">Presença Imediata</h3>
                     <p className="text-xs text-white/50 font-geist">Para quem precisa estar online rápido, com profissionalismo.</p>
                   </div>
-                  <div className="relative mb-4">
+                  <div className="relative mb-6">
                     <div className="flex items-end gap-1">
                       <p className="text-3xl lg:text-4xl text-white font-geist tracking-tighter">R$999<span className="text-2xl">,99</span></p>
                       <span className="text-white/40 text-xs mb-1.5 font-geist uppercase tracking-wide">/ único</span>
                     </div>
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-white/70 font-geist">
+                    <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-white/70 font-geist">
                       <iconify-icon icon="solar:clock-circle-linear" width="12" height="12"></iconify-icon>
                       Entrega em 48 horas
                     </div>
                   </div>
-                  {/* Benefício destaque */}
-                  <div className="mb-4 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
-                    <p className="text-xs text-white/80 font-geist font-medium leading-relaxed">✦ Enquanto seu concorrente não tem site, você já aparece no Google e fecha negócio.</p>
-                  </div>
-                  <ul className="space-y-3 flex-1 mb-6">
+                  <ul className="space-y-3.5 flex-1 mb-8">
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">1 Landing Page Profissional</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">Responsivo: Celular e Desktop</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white/80 font-geist">Domínio Incluso por 1 Ano</span></li>
@@ -730,29 +740,24 @@ export default function App() {
                 {/* Card 2 - Autoridade Digital R$2.499 */}
                 <article className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
                   <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% -20%, rgba(59, 130, 246, 0.12), transparent 70%)' }}></div>
-                  <div className="relative flex flex-col gap-1 mb-4">
+                  <div className="relative flex flex-col gap-1 mb-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg text-white font-semibold tracking-tight font-geist">Autoridade Digital</h3>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-blue-950 bg-blue-400 font-geist">Recomendado</span>
                     </div>
                     <p className="text-xs text-blue-200/60 font-geist">Para negócios que querem ser a referência do segmento.</p>
                   </div>
-                  <div className="relative mb-4">
-                    <div className="flex items-end gap-2 flex-wrap">
+                  <div className="relative mb-6">
+                    <div className="flex items-end gap-1">
                       <p className="text-3xl lg:text-4xl text-white font-geist tracking-tighter">R$2.499</p>
                       <span className="text-white/40 text-xs mb-1.5 font-geist uppercase tracking-wide">/ único</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-green-900 bg-green-400 mb-1.5">50% acima da concorrência entregado</span>
                     </div>
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-200 font-geist">
+                    <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-200 font-geist">
                       <iconify-icon icon="solar:clock-circle-linear" width="12" height="12"></iconify-icon>
                       Entrega em 5 a 7 dias
                     </div>
                   </div>
-                  {/* Benefício destaque */}
-                  <div className="mb-4 rounded-xl bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
-                    <p className="text-xs text-blue-200 font-geist font-medium leading-relaxed">✦ Site completo com SEO, múltiplas páginas e design exclusivo — mais resultado que agências que cobram R$8.000+.</p>
-                  </div>
-                  <ul className="space-y-3 flex-1 mb-6">
+                  <ul className="space-y-3.5 flex-1 mb-8">
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">Até 3 Páginas Estratégicas</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">Domínio Incluso por 1 Ano</span></li>
                     <li className="flex items-start gap-3"><iconify-icon icon="solar:check-circle-linear" width="16" height="16" class="text-blue-400 mt-0.5 shrink-0"></iconify-icon><span className="text-sm text-white font-medium font-geist">SEO Técnico e Indexação no Google</span></li>
