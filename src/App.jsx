@@ -102,12 +102,40 @@ export default function App() {
   useEffect(() => {
     if (loading) return;
 
-    // Give browser a frame to paint before measuring positions
+    let observer = null;
+    let onScrollHandler = null;
+    let progressBar = null;
+
+    // ── Counter animation ──
+    const animateCounter = (el, target, suffix = '') => {
+      if (el.dataset.counted) return;
+      el.dataset.counted = '1';
+      const duration = 1500;
+      const start = performance.now();
+      const update = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(ease * target) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      };
+      requestAnimationFrame(update);
+    };
+
+    const showElement = (el) => {
+      el.classList.add('animate');
+      el.querySelectorAll('.stagger-child').forEach((child, i) => {
+        setTimeout(() => child.classList.add('animate'), i * 120);
+      });
+      el.querySelectorAll('[data-counter]').forEach(c => {
+        animateCounter(c, parseInt(c.dataset.counter), c.dataset.suffix || '');
+      });
+    };
+
     const init = () => {
       // ── Scroll progress bar ──
       const existing = document.getElementById('scroll-progress');
       if (existing) existing.remove();
-      const progressBar = document.createElement('div');
+      progressBar = document.createElement('div');
       progressBar.id = 'scroll-progress';
       Object.assign(progressBar.style, {
         position: 'fixed', top: '0', left: '0', height: '3px', width: '0%',
@@ -119,7 +147,7 @@ export default function App() {
       // ── Navbar hide/show on scroll ──
       let lastScrollY = window.scrollY;
       const navbar = document.querySelector('header');
-      const onScroll = () => {
+      onScrollHandler = () => {
         const curr = window.scrollY;
         const total = document.documentElement.scrollHeight - window.innerHeight;
         progressBar.style.width = total > 0 ? `${(curr / total) * 100}%` : '0%';
@@ -134,76 +162,44 @@ export default function App() {
         }
         lastScrollY = curr;
       };
-      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('scroll', onScrollHandler, { passive: true });
 
-      // ── Counter animation ──
-      const animateCounter = (el, target, suffix = '') => {
-        if (el.dataset.counted) return;
-        el.dataset.counted = '1';
-        const duration = 1500;
-        const start = performance.now();
-        const update = (now) => {
-          const progress = Math.min((now - start) / duration, 1);
-          const ease = 1 - Math.pow(1 - progress, 3);
-          el.textContent = Math.round(ease * target) + suffix;
-          if (progress < 1) requestAnimationFrame(update);
-        };
-        requestAnimationFrame(update);
-      };
+      const allEls = document.querySelectorAll('.animate-on-scroll');
+      const isMobile = window.innerWidth < 768;
 
-      // ── Hero section: force visible, never animate ──
-      const heroSection = document.querySelector('#hero-content');
-      if (heroSection) {
-        heroSection.querySelectorAll('*').forEach(el => {
-          el.style.opacity = '1';
-          el.style.transform = 'none';
-        });
-      }
+      if (isMobile) {
+        // Mobile: show ALL elements immediately, no fade-in delay
+        allEls.forEach(el => showElement(el));
+      } else {
+        // Desktop: IntersectionObserver with very generous settings
+        observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              showElement(entry.target);
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.05, rootMargin: '0px' });
 
-      // ── Intersection Observer ──
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate');
-            entry.target.querySelectorAll('.stagger-child').forEach((child, i) => {
-              setTimeout(() => child.classList.add('animate'), i * 120);
-            });
-            entry.target.querySelectorAll('[data-counter]').forEach(el => {
-              animateCounter(el, parseInt(el.dataset.counter), el.dataset.suffix || '');
-            });
-            observer.unobserve(entry.target);
+        allEls.forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight) {
+            showElement(el);
+          } else {
+            observer.observe(el);
           }
         });
-      }, { threshold: 0.1, rootMargin: '0px 0px -5% 0px' });
-
-      // Observe only elements below the fold
-      document.querySelectorAll('.animate-on-scroll').forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        // If already visible in viewport, animate immediately
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-          el.classList.add('animate');
-          el.querySelectorAll('.stagger-child').forEach((child, i) => {
-            setTimeout(() => child.classList.add('animate'), i * 120);
-          });
-        } else {
-          observer.observe(el);
-        }
-      });
-
-      return () => {
-        observer.disconnect();
-        window.removeEventListener('scroll', onScroll);
-        progressBar.remove();
-      };
+      }
     };
 
-    // Small delay to ensure paint is complete after loading screen disappears
-    const timer = setTimeout(() => {
-      const cleanup = init();
-      return cleanup;
-    }, 100);
+    const timer = setTimeout(init, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (observer) observer.disconnect();
+      if (onScrollHandler) window.removeEventListener('scroll', onScrollHandler);
+      if (progressBar && progressBar.parentNode) progressBar.remove();
+    };
   }, [loading]);
 
 
