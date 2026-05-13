@@ -44,7 +44,7 @@ export default function App() {
 
     const tryFinish = () => {
       if (unicornLoaded && pageLoaded) {
-        // Extra delay so UnicornScene fully renders before fade
+        // Wait longer so UnicornScene fully renders visually before fade
         setTimeout(() => {
           setFadeOut(true);
           setTimeout(() => {
@@ -53,14 +53,14 @@ export default function App() {
             document.body.style.position = '';
             document.body.style.width = '';
           }, 700);
-        }, 800);
+        }, 1500);
       }
     };
 
     // Check page load — handle case where 'load' already fired
     if (document.readyState === 'complete') {
       pageLoaded = true;
-      // Don't call tryFinish yet — wait for unicorn
+      tryFinish();
     } else {
       const onLoad = () => {
         window.removeEventListener('load', onLoad);
@@ -308,15 +308,14 @@ export default function App() {
           @keyframes loadBar { from { width: 0% } to { width: 95% } }
           @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
           .animate-on-scroll { opacity: 0; transform: translateY(28px); transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
-          .animate-on-scroll.animate { opacity: 1; transform: translateY(0); }
-          .hero-visible { opacity: 1 !important; transform: none !important; }
+          .animate-on-scroll.animate { opacity: 1 !important; transform: translateY(0) !important; }
+          #hero-content, #hero-content * { opacity: 1 !important; transform: none !important; transition: none !important; animation: none !important; }
           .stagger-child { opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease-out, transform 0.45s ease-out; }
           .stagger-child.animate { opacity: 1; transform: translateY(0); }
           header { position: sticky; top: 0; z-index: 1000; }
-          @keyframes underlineDraw { from { width: 0 } to { width: 100% } }
           .headline-underline { position: relative; display: inline; }
           .headline-underline::after { content: ''; position: absolute; bottom: -4px; left: 0; height: 3px; width: 0; background: #3b82f6; border-radius: 2px; transition: width 0.6s ease-out; }
-          .animate .headline-underline::after, .headline-underline.animate::after { width: 100%; }
+          .animate .headline-underline::after { width: 100%; }
           @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
         `}</style>
         <img
