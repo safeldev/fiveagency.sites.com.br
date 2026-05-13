@@ -52,11 +52,12 @@ export default function App() {
           document.body.style.position = '';
           document.body.style.width = '';
         }, 700);
-      }, 1200);
+      }, 800);
     };
 
     if (document.readyState === 'complete') {
       pageLoaded = true;
+      tryFinish();
     } else {
       const onLoad = () => {
         window.removeEventListener('load', onLoad);
@@ -85,96 +86,6 @@ export default function App() {
       document.body.style.width = '';
     };
   }, []);
-
-  useEffect(() => {
-    if (loading) return;
-    let observer = null;
-    let onScrollHandler = null;
-    let progressBar = null;
-
-    const timer = setTimeout(() => {
-      // Progress bar
-      const existing = document.getElementById('scroll-progress');
-      if (existing) existing.remove();
-      progressBar = document.createElement('div');
-      progressBar.id = 'scroll-progress';
-      Object.assign(progressBar.style, {
-        position: 'fixed', top: '0', left: '0', height: '3px', width: '0%',
-        background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
-        zIndex: '99999', transition: 'width 0.1s linear', pointerEvents: 'none'
-      });
-      document.body.appendChild(progressBar);
-
-      // Navbar scroll behavior
-      let lastScrollY = window.scrollY;
-      const navbar = document.querySelector('header');
-      onScrollHandler = () => {
-        const curr = window.scrollY;
-        const total = document.documentElement.scrollHeight - window.innerHeight;
-        if (progressBar) progressBar.style.width = total > 0 ? `${(curr / total) * 100}%` : '0%';
-        if (navbar) {
-          navbar.style.transform = (curr > lastScrollY && curr > 80) ? 'translateY(-100%)' : 'translateY(0)';
-          navbar.style.transition = 'transform 0.3s ease';
-        }
-        lastScrollY = curr;
-      };
-      window.addEventListener('scroll', onScrollHandler, { passive: true });
-
-      // Counter animation
-      const animateCounter = (el, target, suffix = '') => {
-        if (el.dataset.counted) return;
-        el.dataset.counted = '1';
-        const start = performance.now();
-        const update = (now) => {
-          const p = Math.min((now - start) / 1500, 1);
-          el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target) + suffix;
-          if (p < 1) requestAnimationFrame(update);
-        };
-        requestAnimationFrame(update);
-      };
-
-      // Desktop only: IntersectionObserver for fade-in
-      const isMobile = window.innerWidth < 768;
-      const allEls = document.querySelectorAll('.animate-on-scroll');
-
-      if (!isMobile) {
-        observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add('animate');
-            entry.target.querySelectorAll('.stagger-child').forEach((c, i) => {
-              setTimeout(() => c.classList.add('animate'), i * 120);
-            });
-            entry.target.querySelectorAll('[data-counter]').forEach(el => {
-              animateCounter(el, parseInt(el.dataset.counter), el.dataset.suffix || '');
-            });
-            observer.unobserve(entry.target);
-          });
-        }, { threshold: 0.05 });
-
-        allEls.forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          if (rect.top < window.innerHeight) {
-            // Already visible — show immediately, no animation
-            el.classList.add('animate');
-          } else {
-            // Below fold — mark for animation then observe
-            el.classList.add('will-animate');
-            el.querySelectorAll('.stagger-child').forEach(c => c.classList.add('will-animate'));
-            observer.observe(el);
-          }
-        });
-      }
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (observer) observer.disconnect();
-      if (onScrollHandler) window.removeEventListener('scroll', onScrollHandler);
-      if (progressBar && progressBar.parentNode) progressBar.remove();
-    };
-  }, [loading]);
-
 
 
   const handleFormSubmit = async (e) => {
@@ -282,16 +193,7 @@ export default function App() {
         <style>{`
           @keyframes loadBar { from { width: 0% } to { width: 95% } }
           @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
-          .animate-on-scroll { transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
-          .animate-on-scroll.will-animate { opacity: 0; transform: translateY(28px); }
-          .animate-on-scroll.will-animate.animate { opacity: 1; transform: translateY(0); }
-          .stagger-child.will-animate { opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease-out, transform 0.45s ease-out; }
-          .stagger-child.will-animate.animate { opacity: 1; transform: translateY(0); }
-          header { position: sticky; top: 0; z-index: 1000; }
-          .headline-underline { position: relative; display: inline; }
-          .headline-underline::after { content: ''; position: absolute; bottom: -4px; left: 0; height: 3px; width: 0; background: #3b82f6; border-radius: 2px; transition: width 0.6s ease-out; }
-          .animate .headline-underline::after { width: 100%; }
-          @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+
         `}</style>
         <img
           src={LOGO}
@@ -400,9 +302,9 @@ export default function App() {
                 </div>
               </div>
             )}
-            <section id="hero-content" className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
+            <section className="z-10 sm:pt-20 md:pt-48 md:pb-24 text-center max-w-5xl mr-auto ml-auto pt-20 pb-32 relative">
               <h1 className="sm:text-6xl md:text-7xl text-4xl tracking-tighter font-geist max-w-5xl mr-auto ml-auto">
-                Seu Próximo Cliente Está no Google Agora.<br /><span className="headline-underline">Ele Vai Encontrar Você, ou o Seu Concorrente.</span>
+                Seu Próximo Cliente Está no Google Agora.<br /><span className="">Ele Vai Encontrar Você, ou o Seu Concorrente.</span>
               </h1>
               <p className="sm:text-lg text-base font-normal text-white/70 font-geist max-w-2xl mt-6 mr-auto ml-auto">
                 A Five Agency cria sites que aparecem, identidades visuais que convencem e campanhas que geram leads todo dia. Do briefing ao ar em até 7 dias.
@@ -438,12 +340,12 @@ export default function App() {
         {/* 1. THE MANIFESTO */}
         <section id="manifesto" className="relative py-24 border-y border-white/5 bg-white/[0.02]">
           <div className="sm:px-6 lg:px-8 max-w-4xl mr-auto ml-auto pr-6 pl-6 text-center">
-            <h2 className="text-xs font-semibold tracking-wider text-blue-500 uppercase font-geist animate-on-scroll">A Realidade do Mercado</h2>
-            <h3 className="mt-4 text-3xl sm:text-5xl font-geist tracking-tighter text-white animate-on-scroll">
-              <span className="headline-underline">Dois Negócios. Mesma Cidade.</span><br />Resultados Completamente Diferentes.
+            <h2 className="text-xs font-semibold tracking-wider text-blue-500 uppercase font-geist">A Realidade do Mercado</h2>
+            <h3 className="mt-4 text-3xl sm:text-5xl font-geist tracking-tighter text-white">
+              <span className="">Dois Negócios. Mesma Cidade.</span><br />Resultados Completamente Diferentes.
             </h3>
             
-            <div className="mt-10 relative bg-neutral-900/50 border border-white/10 rounded-2xl p-8 sm:p-12 animate-on-scroll">
+            <div className="mt-10 relative bg-neutral-900/50 border border-white/10 rounded-2xl p-8 sm:p-12">
                <iconify-icon icon="solar:quote-left-bold" width="32" height="32" class="absolute top-6 left-6 text-white/20 transform -translate-x-2 -translate-y-2"></iconify-icon>
                <p className="relative text-lg sm:text-xl text-white/80 font-geist leading-relaxed">
                  Um acorda todo dia com novos leads chegando, pessoas que pesquisaram no Google, viram o site, e já chegaram prontas para comprar.<br /><br />
@@ -462,12 +364,12 @@ export default function App() {
         {/* 2. US VS THEM */}
         <section className="relative py-24 overflow-hidden">
           <div className="sm:px-6 lg:px-8 max-w-7xl mr-auto ml-auto pr-6 pl-6">
-            <div className="text-center mb-16 animate-on-scroll">
+            <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter">O Que Muda Quando Você Para de Esperar<br />e Começa a Aparecer</h2>
               <p className="mt-4 text-white/60 font-geist max-w-2xl mx-auto">Não é sorte. Não é capital. É presença digital estratégica, site, design e tráfego trabalhando juntos.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 animate-on-scroll">
+            <div className="grid md:grid-cols-2 gap-8">
               {/* Them */}
               <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-6 opacity-60 grayscale transition hover:opacity-80 hover:grayscale-0">
                 <h3 className="text-xl font-medium text-white/50 font-geist">Sem Presença Digital</h3>
@@ -547,15 +449,15 @@ export default function App() {
         <section className="z-10 sm:px-6 lg:px-8 max-w-7xl mr-auto ml-auto pt-8 pr-6 pb-20 pl-6 relative" id="ecosystem">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
             <div>
-              <p className="text-sm font-medium text-white/50 font-geist animate-on-scroll">O Que Entregamos</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter animate-on-scroll">Sites, Design e Tráfego.<br />Tudo que Seu Negócio Precisa para Vender Online.</h2>
-              <p className="mt-3 text-base text-white/70 font-geist animate-on-scroll">Para empresas que querem crescer com consistência, sem depender de indicação.</p>
+              <p className="text-sm font-medium text-white/50 font-geist">O Que Entregamos</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter">Sites, Design e Tráfego.<br />Tudo que Seu Negócio Precisa para Vender Online.</h2>
+              <p className="mt-3 text-base text-white/70 font-geist">Para empresas que querem crescer com consistência, sem depender de indicação.</p>
             </div>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3 gap-x-6 gap-y-6">
             {/* Card 1: Sites */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 group hover:bg-white/[0.07] transition-colors md:col-span-1">
               <div className="sm:p-8 pt-6 pr-6 pb-6 pl-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -568,7 +470,7 @@ export default function App() {
             </div>
 
             {/* Card 2: Design */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 group hover:bg-white/[0.07] transition-colors md:col-span-1">
                <div className="sm:p-8 pt-6 pr-6 pb-6 pl-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
@@ -582,7 +484,7 @@ export default function App() {
             </div>
 
             {/* Card 3: SEO */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-on-scroll group hover:bg-white/[0.07] transition-colors md:col-span-1">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 group hover:bg-white/[0.07] transition-colors md:col-span-1">
               <div className="sm:p-8 pt-6 pr-6 pb-6 pl-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -595,7 +497,7 @@ export default function App() {
             </div>
 
             {/* Big feature: Portfolio Item */}
-            <div className="group relative overflow-hidden rounded-2xl border border-white/10 md:col-span-3 animate-on-scroll mt-6" style={{ minHeight: '320px' }}>
+            <div className="group relative overflow-hidden rounded-2xl border border-white/10 md:col-span-3 mt-6" style={{ minHeight: '320px' }}>
               <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?fm=jpg&q=60&w=3000&auto=format&fit=crop" alt="Case Study" className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20 z-10"></div>
               
@@ -605,10 +507,10 @@ export default function App() {
                 </div>
                 <h3 className="text-3xl sm:text-4xl font-geist tracking-tighter">De Zero Presença Digital a Lotada em 30 Dias</h3>
                 <p className="mt-4 text-base sm:text-lg text-white/70 font-geist">Uma empresa sem site, sem Google, sem nada. Em <strong className="text-white">7 dias</strong> estava no ar. Em <strong className="text-white">30 dias</strong>, os contatos <strong className="text-white">triplicaram</strong>, todos vindos de pesquisa orgânica. Sem gastar um real em anúncios.</p>
-                <div className="mt-6 flex items-center gap-6 animate-on-scroll">
-                  <div><p className="text-2xl font-bold text-white font-geist"><span data-counter="3" data-suffix="×">3×</span></p><p className="text-xs text-white/50 font-geist">mais contatos</p></div>
+                <div className="mt-6 flex items-center gap-6">
+                  <div><p className="text-2xl font-bold text-white font-geist"><span>3×</span></p><p className="text-xs text-white/50 font-geist">mais contatos</p></div>
                   <div className="h-8 w-px bg-white/10"></div>
-                  <div><p className="text-2xl font-bold text-white font-geist"><span data-counter="7" data-suffix=" dias">7 dias</span></p><p className="text-xs text-white/50 font-geist">do briefing ao ar</p></div>
+                  <div><p className="text-2xl font-bold text-white font-geist"><span>7 dias</span></p><p className="text-xs text-white/50 font-geist">do briefing ao ar</p></div>
                   <div className="h-8 w-px bg-white/10"></div>
                   <div><p className="text-2xl font-bold text-white font-geist">R$0</p><p className="text-xs text-white/50 font-geist">em anúncios</p></div>
                 </div>
@@ -620,7 +522,7 @@ export default function App() {
         {/* 4. PROCESS PATH */}
         <section className="py-24 bg-white/[0.02] border-y border-white/5 relative">
             <div className="sm:px-6 lg:px-8 max-w-7xl mr-auto ml-auto pr-6 pl-6">
-                 <div className="text-center mb-16 animate-on-scroll">
+                 <div className="text-center mb-16">
                     <p className="text-xs font-semibold tracking-wider text-blue-500 uppercase font-geist mb-3">Como Funciona</p>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter">Do Briefing ao Resultado em 7 Dias. Sem Burocracia.</h2>
                     <p className="mt-4 text-white/60 font-geist">Sem burocracia. Sem reuniões infinitas. Você foca no seu negócio, a gente cuida do digital.</p>
@@ -629,7 +531,7 @@ export default function App() {
                 <div className="relative grid md:grid-cols-3 gap-8">
                     <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
-                    <div className="relative flex flex-col items-center text-center animate-on-scroll">
+                    <div className="relative flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center relative z-10 mb-6 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                             <span className="text-xl font-bold font-geist text-white">01</span>
                         </div>
@@ -637,7 +539,7 @@ export default function App() {
                         <p className="text-sm text-white/60 font-geist leading-relaxed max-w-xs">Você nos conta sobre seu negócio, público e objetivo. Sem formulário longo, sem call de 1 hora.</p>
                     </div>
 
-                    <div className="relative flex flex-col items-center text-center animate-on-scroll">
+                    <div className="relative flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-full bg-black border border-blue-500/50 flex items-center justify-center relative z-10 mb-6 shadow-[0_0_20px_rgba(59,130,246,0.2)]">
                             <span className="text-xl font-bold font-geist text-blue-400">02</span>
                         </div>
@@ -645,7 +547,7 @@ export default function App() {
                         <p className="text-sm text-white/60 font-geist leading-relaxed max-w-xs">Site, design ou campanha: desenvolvemos com velocidade e qualidade. Você aprova tudo antes de publicar.</p>
                     </div>
 
-                     <div className="relative flex flex-col items-center text-center animate-on-scroll">
+                     <div className="relative flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center relative z-10 mb-6 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                             <span className="text-xl font-bold font-geist text-white">03</span>
                         </div>
@@ -659,7 +561,7 @@ export default function App() {
         {/* Pricing Section */}
         <section className="sm:p-8 sm:ml-8 sm:mr-8 sm:mb-10 mt-10 mr-4 mb-10 ml-4 pt-6 pr-4 pb-6 pl-4" id="pricing">
           <div className="relative">
-            <div className="relative max-w-5xl mx-auto text-center animate-on-scroll">
+            <div className="relative max-w-5xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/80">
                 <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
                 <span className="text-xs font-normal font-geist">Nossos Serviços</span>
@@ -672,7 +574,7 @@ export default function App() {
 
             {/* Sites Profissionais */}
             <div className="relative max-w-[900px] mx-auto mt-14">
-              <div className="flex items-center gap-4 mb-6 animate-on-scroll">
+              <div className="flex items-center gap-4 mb-6">
                 <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <iconify-icon icon="solar:monitor-smartphone-linear" width="20" height="20" class="text-blue-400"></iconify-icon>
                 </div>
@@ -683,7 +585,7 @@ export default function App() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card 1 - Presença Imediata R$999,99 */}
-                <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full hover:bg-white/[0.07] transition-colors duration-300">
+                <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 flex flex-col h-full hover:bg-white/[0.07] transition-colors duration-300">
                   <div className="relative flex flex-col gap-1 mb-6">
                     <h3 className="text-lg text-white font-medium tracking-tight font-geist">Presença Imediata</h3>
                     <p className="text-xs text-white/50 font-geist">Para quem precisa estar online rápido, com profissionalismo.</p>
@@ -708,7 +610,7 @@ export default function App() {
                 </article>
 
                 {/* Card 2 - Autoridade Digital R$2.499 */}
-                <article className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
+                <article className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl p-6 flex flex-col h-full shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
                   <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% -20%, rgba(59, 130, 246, 0.12), transparent 70%)' }}></div>
                   <div className="relative flex flex-col gap-1 mb-6">
                     <div className="flex items-center justify-between">
@@ -746,7 +648,7 @@ export default function App() {
 
             {/* Tráfego Pago */}
             <div className="relative max-w-[900px] mx-auto">
-              <div className="flex items-center gap-4 mb-6 animate-on-scroll">
+              <div className="flex items-center gap-4 mb-6">
                 <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
                   <iconify-icon icon="solar:target-linear" width="20" height="20" class="text-purple-400"></iconify-icon>
                 </div>
@@ -756,7 +658,7 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full hover:bg-white/[0.07] transition-colors duration-300">
+                <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 flex flex-col h-full hover:bg-white/[0.07] transition-colors duration-300">
                   <div className="relative flex flex-col gap-1 mb-6">
                     <h3 className="text-lg text-white font-medium tracking-tight font-geist">Primeiros Leads</h3>
                     <p className="text-xs text-white/50 font-geist">Para quem quer começar a gerar leads de forma previsível.</p>
@@ -782,7 +684,7 @@ export default function App() {
                   <a href="https://wa.me/5511914417241?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Five%20Agency%20e%20tenho%20interesse%20em%20gest%C3%A3o%20de%20tr%C3%A1fego%20pago%20para%20minha%20empresa%20(Plano%20Primeiros%20Leads).%20Pode%20me%20passar%20mais%20informa%C3%A7%C3%B5es%3F" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center h-10 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition font-geist border border-white/10">Quero Este Plano</a>
                 </article>
 
-                <article className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl p-6 animate-on-scroll flex flex-col h-full shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
+                <article className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl p-6 flex flex-col h-full shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
                   <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% -20%, rgba(59, 130, 246, 0.15), transparent 70%)' }}></div>
                   <div className="relative flex flex-col gap-1 mb-6">
                     <div className="flex items-center justify-between">
@@ -814,7 +716,7 @@ export default function App() {
               </div>
 
               {/* Traffic Card 3 — full width */}
-              <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 animate-on-scroll flex flex-col md:flex-row gap-6 mt-6 hover:bg-white/[0.07] transition-colors duration-300">
+              <article className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 flex flex-col md:flex-row gap-6 mt-6 hover:bg-white/[0.07] transition-colors duration-300">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg text-white font-medium tracking-tight font-geist">Dominância Total</h3>
@@ -849,13 +751,13 @@ export default function App() {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
           <div className="sm:px-6 lg:px-8 max-w-3xl mr-auto ml-auto pr-4 pl-4 relative z-10">
             
-            <div className="text-center mb-10 animate-on-scroll">
+            <div className="text-center mb-10">
               <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur font-geist">Sem Compromisso · Resposta em até 24h</span>
               <h2 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-geist tracking-tighter text-white">Pronto pra Aparecer no Google<br />e Vender Enquanto Dorme?</h2>
               <p className="mt-4 text-lg text-white/70 font-geist">Preencha abaixo. Em até 24h um especialista entra em contato, sem pitch e sem enrolação.</p>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="bg-black/50 border border-white/10 p-6 sm:p-10 rounded-2xl backdrop-blur-xl animate-on-scroll">
+            <form onSubmit={handleFormSubmit} className="bg-black/50 border border-white/10 p-6 sm:p-10 rounded-2xl backdrop-blur-xl">
                 {formStatus === 'success' ? (
                   <div className="text-center py-12">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/30 mb-6">
