@@ -155,8 +155,12 @@ export default function App() {
         allEls.forEach((el) => {
           const rect = el.getBoundingClientRect();
           if (rect.top < window.innerHeight) {
+            // Already visible — show immediately, no animation
             el.classList.add('animate');
           } else {
+            // Below fold — mark for animation then observe
+            el.classList.add('will-animate');
+            el.querySelectorAll('.stagger-child').forEach(c => c.classList.add('will-animate'));
             observer.observe(el);
           }
         });
@@ -278,14 +282,11 @@ export default function App() {
         <style>{`
           @keyframes loadBar { from { width: 0% } to { width: 95% } }
           @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
-          .animate-on-scroll { opacity: 0; transform: translateY(28px); transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
-          .animate-on-scroll.animate { opacity: 1 !important; transform: translateY(0) !important; }
-          .stagger-child { opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease-out, transform 0.45s ease-out; }
-          .stagger-child.animate { opacity: 1; transform: translateY(0); }
-          @media (max-width: 767px) {
-            .animate-on-scroll { opacity: 1 !important; transform: none !important; transition: none !important; }
-            .stagger-child { opacity: 1 !important; transform: none !important; transition: none !important; }
-          }
+          .animate-on-scroll { transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
+          .animate-on-scroll.will-animate { opacity: 0; transform: translateY(28px); }
+          .animate-on-scroll.will-animate.animate { opacity: 1; transform: translateY(0); }
+          .stagger-child.will-animate { opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease-out, transform 0.45s ease-out; }
+          .stagger-child.will-animate.animate { opacity: 1; transform: translateY(0); }
           header { position: sticky; top: 0; z-index: 1000; }
           .headline-underline { position: relative; display: inline; }
           .headline-underline::after { content: ''; position: absolute; bottom: -4px; left: 0; height: 3px; width: 0; background: #3b82f6; border-radius: 2px; transition: width 0.6s ease-out; }
