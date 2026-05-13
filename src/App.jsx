@@ -28,39 +28,35 @@ export default function App() {
   const [formStatus, setFormStatus] = useState('idle');
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
-  const [pricingTab, _setPricingTab] = useState('sites');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleMobileMenu = () => setMobileMenuOpen(prev => !prev);
 
   useEffect(() => {
-    // Lock scroll while loading
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
 
+    let finished = false;
     let unicornLoaded = false;
     let pageLoaded = false;
 
     const tryFinish = () => {
-      if (unicornLoaded && pageLoaded) {
-        // Wait longer so UnicornScene fully renders visually before fade
+      if (finished || !unicornLoaded || !pageLoaded) return;
+      finished = true;
+      setTimeout(() => {
+        setFadeOut(true);
         setTimeout(() => {
-          setFadeOut(true);
-          setTimeout(() => {
-            setLoading(false);
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-          }, 700);
-        }, 1500);
-      }
+          setLoading(false);
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+        }, 700);
+      }, 1200);
     };
 
-    // Check page load — handle case where 'load' already fired
     if (document.readyState === 'complete') {
       pageLoaded = true;
-      tryFinish();
     } else {
       const onLoad = () => {
         window.removeEventListener('load', onLoad);
@@ -70,25 +66,16 @@ export default function App() {
       window.addEventListener('load', onLoad);
     }
 
-    // Use the already-started promise (pre-loaded at module level)
     const unicornLoad = unicornPromise || import('unicornstudio-react').then((mod) => {
       UnicornScene = mod.default;
       return mod.default;
     });
 
-    unicornLoad.then(() => {
-      unicornLoaded = true;
-      tryFinish();
-    }).catch(() => {
-      unicornLoaded = true;
-      tryFinish();
-    });
+    unicornLoad.then(() => { unicornLoaded = true; tryFinish(); })
+               .catch(() => { unicornLoaded = true; tryFinish(); });
 
-    // Safety fallback — never block forever
     const fallback = setTimeout(() => {
-      pageLoaded = true;
-      unicornLoaded = true;
-      tryFinish();
+      unicornLoaded = true; pageLoaded = true; tryFinish();
     }, 6000);
 
     return () => {
@@ -101,38 +88,12 @@ export default function App() {
 
   useEffect(() => {
     if (loading) return;
-
     let observer = null;
     let onScrollHandler = null;
     let progressBar = null;
 
-    // ── Counter animation ──
-    const animateCounter = (el, target, suffix = '') => {
-      if (el.dataset.counted) return;
-      el.dataset.counted = '1';
-      const duration = 1500;
-      const start = performance.now();
-      const update = (now) => {
-        const progress = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.round(ease * target) + suffix;
-        if (progress < 1) requestAnimationFrame(update);
-      };
-      requestAnimationFrame(update);
-    };
-
-    const showElement = (el) => {
-      el.classList.add('animate');
-      el.querySelectorAll('.stagger-child').forEach((child, i) => {
-        setTimeout(() => child.classList.add('animate'), i * 120);
-      });
-      el.querySelectorAll('[data-counter]').forEach(c => {
-        animateCounter(c, parseInt(c.dataset.counter), c.dataset.suffix || '');
-      });
-    };
-
-    const init = () => {
-      // ── Scroll progress bar ──
+    const timer = setTimeout(() => {
+      // Progress bar
       const existing = document.getElementById('scroll-progress');
       if (existing) existing.remove();
       progressBar = document.createElement('div');
@@ -144,55 +105,63 @@ export default function App() {
       });
       document.body.appendChild(progressBar);
 
-      // ── Navbar hide/show on scroll ──
+      // Navbar scroll behavior
       let lastScrollY = window.scrollY;
       const navbar = document.querySelector('header');
       onScrollHandler = () => {
         const curr = window.scrollY;
         const total = document.documentElement.scrollHeight - window.innerHeight;
-        progressBar.style.width = total > 0 ? `${(curr / total) * 100}%` : '0%';
+        if (progressBar) progressBar.style.width = total > 0 ? `${(curr / total) * 100}%` : '0%';
         if (navbar) {
-          if (curr > lastScrollY && curr > 80) {
-            navbar.style.transform = 'translateY(-100%)';
-            navbar.style.transition = 'transform 0.3s ease';
-          } else {
-            navbar.style.transform = 'translateY(0)';
-            navbar.style.backdropFilter = curr > 10 ? 'blur(12px)' : '';
-          }
+          navbar.style.transform = (curr > lastScrollY && curr > 80) ? 'translateY(-100%)' : 'translateY(0)';
+          navbar.style.transition = 'transform 0.3s ease';
         }
         lastScrollY = curr;
       };
       window.addEventListener('scroll', onScrollHandler, { passive: true });
 
-      const allEls = document.querySelectorAll('.animate-on-scroll');
-      const isMobile = window.innerWidth < 768;
+      // Counter animation
+      const animateCounter = (el, target, suffix = '') => {
+        if (el.dataset.counted) return;
+        el.dataset.counted = '1';
+        const start = performance.now();
+        const update = (now) => {
+          const p = Math.min((now - start) / 1500, 1);
+          el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target) + suffix;
+          if (p < 1) requestAnimationFrame(update);
+        };
+        requestAnimationFrame(update);
+      };
 
-      if (isMobile) {
-        // Mobile: show ALL elements immediately, no fade-in delay
-        allEls.forEach(el => showElement(el));
-      } else {
-        // Desktop: IntersectionObserver with very generous settings
+      // Desktop only: IntersectionObserver for fade-in
+      const isMobile = window.innerWidth < 768;
+      const allEls = document.querySelectorAll('.animate-on-scroll');
+
+      if (!isMobile) {
         observer = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              showElement(entry.target);
-              observer.unobserve(entry.target);
-            }
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('animate');
+            entry.target.querySelectorAll('.stagger-child').forEach((c, i) => {
+              setTimeout(() => c.classList.add('animate'), i * 120);
+            });
+            entry.target.querySelectorAll('[data-counter]').forEach(el => {
+              animateCounter(el, parseInt(el.dataset.counter), el.dataset.suffix || '');
+            });
+            observer.unobserve(entry.target);
           });
-        }, { threshold: 0.05, rootMargin: '0px' });
+        }, { threshold: 0.05 });
 
         allEls.forEach((el) => {
           const rect = el.getBoundingClientRect();
           if (rect.top < window.innerHeight) {
-            showElement(el);
+            el.classList.add('animate');
           } else {
             observer.observe(el);
           }
         });
       }
-    };
-
-    const timer = setTimeout(init, 150);
+    }, 100);
 
     return () => {
       clearTimeout(timer);
@@ -201,6 +170,7 @@ export default function App() {
       if (progressBar && progressBar.parentNode) progressBar.remove();
     };
   }, [loading]);
+
 
 
   const handleFormSubmit = async (e) => {
